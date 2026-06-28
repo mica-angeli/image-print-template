@@ -67,6 +67,10 @@ class Config:
     background: str = "white"
     extensions: tuple[str, ...] = DEFAULT_EXTENSIONS
 
+    # Mode: when True, ignore `input` and render a single template test sheet
+    # (bleed + cut outlines and an up-arrow per slot) instead of placing images.
+    test_sheet: bool = False
+
     # --- unit conversion -------------------------------------------------
 
     def to_px(self, value: float) -> int:
@@ -91,10 +95,12 @@ class Config:
         errors: list[str] = []
         warnings: list[str] = []
 
-        if not self.input:
-            errors.append("input image folder is required")
-        elif not Path(self.input).is_dir():
-            errors.append(f"input folder does not exist: {self.input}")
+        # In test-sheet mode there is no input folder to read.
+        if not self.test_sheet:
+            if not self.input:
+                errors.append("input image folder is required")
+            elif not Path(self.input).is_dir():
+                errors.append(f"input folder does not exist: {self.input}")
 
         if not self.output:
             errors.append("output PDF path is required")

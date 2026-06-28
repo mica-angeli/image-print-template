@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 from .config import Config
 
@@ -128,6 +128,91 @@ def compose_pages(cfg: Config, images: list[Path], verbose: bool = False) -> lis
         pages.append(canvas)
 
     return pages
+
+
+def _draw_test_card(
+    draw: ImageDraw.ImageDraw,
+    x: int,
+    y: int,
+    w: int,
+    h: int,
+    bleed_x: int,
+    bleed_y: int,
+    line_w: int,
+    color: str = "black",
+) -> None:
+    """Draw one test-sheet card: bleed + cut outlines and an up-arrow.
+
+    ``(x, y)`` is the slot's top-left (the non-bleed/cut corner); ``w`` x ``h`` is
+    the card slot size in pixels; bleed extends the outer rectangle outward.
+    """
+    # Outer rectangle at the full bleed size (only when there is bleed to show).
+    if bleed_x > 0 or bleed_y > 0:
+        draw.rectangle(
+            [x - bleed_x, y - bleed_y, x + w + bleed_x, y + h + bleed_y],
+            outline=color,
+            width=line_w,
+        )
+    # Inner rectangle at the non-bleed (cut) size.
+    draw.rectangle([x, y, x + w, y + h], outline=color, width=line_w)
+
+    # Up-arrow centered in the card to denote orientation.
+    cx = x + w // 2
+    tip_y = y + int(h * 0.30)
+    tail_y = y + int(h * 0.70)
+    head_h = int(h * 0.10)
+    head_w = int(w * 0.12)
+    draw.line([(cx, tail_y), (cx, tip_y)], fill=color, width=line_w)  # shaft
+    draw.line([(cx - head_w, tip_y + head_h), (cx, tip_y)], fill=color, width=line_w)
+    draw.line([(cx + head_w, tip_y + head_h), (cx, tip_y)], fill=color, width=line_w)
+
+
+def compose_test_page(cfg: Config, verbose: bool = False) -> Image.Image:
+    """Render a single-page test sheet for the configured template.
+
+    Every grid slot is drawn (no images needed) with a bleed-size outline, a
+    cut-size outline, and an up-arrow, so a printed copy can be checked against
+    a physical template.
+    """
+    page_w = cfg.to_px(cfg.page_width)
+    page_h = cfg.to_px(cfg.page_height)
+    card_w = cfg.to_px(cfg.card_width)
+    card_h = cfg.to_px(cfg.card_height)
+    margin_l = cfg.to_px(cfg.margin_left)
+    margin_t = cfg.to_px(cfg.margin_top)
+    gap_x = cfg.to_px(cfg.gap_x)
+    gap_y = cfg.to_px(cfg.gap_y)
+    bleed_x = cfg.to_px(cfg.bleed_x)
+    bleed_y = cfg.to_px(cfg.bleed_y)
+
+    # A thin, crisp line so alignment can be judged precisely (~2 px at 300 DPI).
+    line_w = max(1, round(cfg.dpi / 150))
+
+    if verbose:
+        print(f"  mode:        test sheet (1 page)")
+        print(f"  page size:   {page_w} x {page_h} px ({cfg.dpi} DPI)")
+        print(f"  card slot:   {card_w} x {card_h} px  (bleed {bleed_x} x {bleed_y} px)")
+        print(f"  grid:        {cfg.columns} cols x {cfg.rows} rows")
+
+    canvas = Image.new("RGB", (page_w, page_h), cfg.background)
+    draw = ImageDraw.Draw(canvas)
+    for row in range(cfg.rows):
+        for col in range(cfg.columns):
+            slot_x = margin_l + col * (card_w + gap_x)
+            slot_y = margin_t + row * (card_h + gap_y)
+            _draw_test_card(draw, slot_x, slot_y, card_w, card_h, bleed_x, bleed_y, line_w)
+
+    return canvas
+
+
+def build_test_sheet(cfg: Config, verbose: bool = False) -> int:
+    """Render and save a single-page template test sheet. Returns page count (1)."""
+    page = compose_test_page(cfg, verbose=verbose)
+    output = Path(cfg.output).expanduser()
+    page.save(output, "PDF", resolution=float(cfg.dpi))
+    if verbose:
+        print(f"  wrote:       {output} (1 page)")
+    return 1
 
 
 def build_pdf(cfg: Config, verbose: bool = False) -> int:

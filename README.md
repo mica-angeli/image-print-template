@@ -76,6 +76,7 @@ pixels using `--dpi`.
 | `--fit` | `fit` | `stretch` | Resize mode: `stretch`, `fill`, `fit` |
 | `--background` | `background` | `white` | Color for empty slots / letterbox fill |
 | `--extensions` | `extensions` | common image types | Which file extensions to include |
+| `--test-sheet` | `test_sheet` | off | Render a template test sheet (see below); no input folder needed |
 | `--verbose`, `-v` | — | off | Print the resolved layout |
 
 ### Units and DPI
@@ -107,6 +108,33 @@ shifted `0.02 in` up-and-left so it overflows the slot edges.
 
 Keep bleed at or below half the gap between cards (`bleed ≤ gap ÷ 2`) to avoid
 overlapping neighbours — the tool warns you if it doesn't.
+
+## Test sheet mode
+
+Before committing a print run, use `--test-sheet` to check that a template lines up
+with your physical card stock. It ignores the input folder and renders a **single
+page** where every grid slot is drawn with:
+
+- an outer rectangle at the **full bleed** size,
+- an inner rectangle at the **non-bleed (cut)** size, and
+- an **up-arrow** showing the card's orientation.
+
+Both rectangles are unfilled with a thin black outline, so you can print the sheet and
+hold it against the template to confirm margins, gaps, card size, and bleed.
+
+```bash
+# From a template (output is the single positional argument):
+uv run cards --test-sheet test_sheet.pdf -c templates/poker_letter.json --bleed-x 0.1 --bleed-y 0.1
+
+# Or fully from the CLI:
+uv run cards --test-sheet test_sheet.pdf \
+  --page-width 8.5 --page-height 11 \
+  --card-width 2.5 --card-height 3.5 \
+  --columns 3 --rows 3 --margin-top 0.5 --margin-left 0.5 \
+  --bleed-x 0.1 --bleed-y 0.1
+```
+
+When bleed is `0`, the two rectangles coincide, so only the cut outline is drawn.
 
 ## JSON templates
 

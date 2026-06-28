@@ -14,7 +14,7 @@ from .config import (
     build_config,
     load_json_config,
 )
-from .layout import build_pdf
+from .layout import build_pdf, build_test_sheet
 
 # Built-in defaults. Required geometry fields are intentionally absent so the
 # user must supply them via a config file and/or CLI flags.
@@ -31,6 +31,7 @@ DEFAULTS: dict = {
     "fit": "stretch",
     "background": "white",
     "extensions": list(DEFAULT_EXTENSIONS),
+    "test_sheet": False,
 }
 
 
@@ -106,6 +107,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--extensions", default=argparse.SUPPRESS,
                    help="comma/space separated image extensions to include")
 
+    p.add_argument("--test-sheet", dest="test_sheet", action="store_true",
+                   default=argparse.SUPPRESS,
+                   help="ignore the input folder and render a single template test "
+                        "sheet (bleed + cut outlines and an up-arrow per slot)")
+
     p.add_argument("-v", "--verbose", action="store_true",
                    help="print the resolved layout details")
     return p
@@ -126,6 +132,12 @@ def resolve_settings(argv: list[str] | None = None) -> tuple[Config, bool]:
         merged.update(load_json_config(config_path))
     merged.update(args)  # only user-supplied flags are present here
 
+    # Test-sheet mode takes no input folder, so a single positional (which
+    # argparse assigns to `input`) is really the output PDF path.
+    if merged.get("test_sheet") and not merged.get("output") and merged.get("input"):
+        merged["output"] = merged["input"]
+        merged["input"] = ""
+
     cfg = build_config(merged)
     for warning in cfg.validate():
         print(f"warning: {warning}", file=sys.stderr)
@@ -137,7 +149,10 @@ def main(argv: list[str] | None = None) -> int:
         cfg, verbose = resolve_settings(argv)
         if verbose:
             print("Building PDF:")
-        build_pdf(cfg, verbose=verbose)
+        if cfg.test_sheet:
+            build_test_sheet(cfg, verbose=verbose)
+        else:
+            build_pdf(cfg, verbose=verbose)
     except (ConfigError, FileNotFoundError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
