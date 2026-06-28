@@ -1,0 +1,19 @@
+[project]
+name = "image-print-template"
+version = "0.1.0"
+description = "Arrange a folder of images into a configurable, print-ready PDF grid (e.g. playing-card sheets)."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pillow>=10.0",
+]
+
+[project.scripts]
+cards = "card_sheet.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/card_sheet"]

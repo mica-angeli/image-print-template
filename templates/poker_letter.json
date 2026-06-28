@@ -1,0 +1,19 @@
+{
+  "units": "in",
+  "dpi": 300,
+  "page_width": 8.5,
+  "page_height": 11.0,
+  "card_width": 2.5,
+  "card_height": 3.5,
+  "columns": 3,
+  "rows": 3,
+  "margin_top": 0.5,
+  "margin_left": 0.5,
+  "gap_x": 0.0,
+  "gap_y": 0.0,
+  "bleed_x": 0.0,
+  "bleed_y": 0.0,
+  "rotate": 0,
+  "fit": "stretch",
+  "background": "white"
+}

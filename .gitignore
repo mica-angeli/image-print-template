@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.eggs/
+
+# uv / virtualenv
+.venv/
+venv/
+
+# Generated output sheets
+*.pdf
+output/
+
+# Test fixtures generated during verification
+test_cards/
+
+# macOS
+.DS_Store
