@@ -54,6 +54,7 @@ class Config:
     card_height: float = 0.0
     columns: int = 0
     rows: int = 0
+    offset: int = 0
     margin_top: float = 0.0
     margin_left: float = 0.0
     gap_x: float = 0.0
@@ -124,6 +125,8 @@ class Config:
         for key in ("columns", "rows"):
             if getattr(self, key) < 1:
                 errors.append(f"{key} must be >= 1, got {getattr(self, key)}")
+        if self.offset < 0:
+            errors.append(f"offset must be >= 0, got {self.offset}")
         for key in ("margin_top", "margin_left", "gap_x", "gap_y", "bleed_x", "bleed_y"):
             if getattr(self, key) < 0:
                 errors.append(f"{key} must be >= 0, got {getattr(self, key)}")

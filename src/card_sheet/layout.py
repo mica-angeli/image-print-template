@@ -99,7 +99,11 @@ def compose_pages(cfg: Config, images: list[Path], verbose: bool = False) -> lis
     bleed_y = cfg.to_px(cfg.bleed_y)
 
     per_page = cfg.columns * cfg.rows
-    page_count = max(1, math.ceil(len(images) / per_page))
+
+    # A starting offset leaves that many leading slots blank before the first
+    # image; model it as leading empty slots in the placement sequence.
+    slots: list[Path | None] = [None] * cfg.offset + list(images)
+    page_count = max(1, math.ceil(len(slots) / per_page))
 
     # Each image is rendered to the slot grown by bleed on every side, then
     # pasted offset outward so the artwork overflows the cut line.
@@ -109,15 +113,18 @@ def compose_pages(cfg: Config, images: list[Path], verbose: bool = False) -> lis
         print(f"  page size:   {page_w} x {page_h} px ({cfg.dpi} DPI)")
         print(f"  card slot:   {card_w} x {card_h} px  (+bleed -> {target_px[0]} x {target_px[1]})")
         print(f"  grid:        {cfg.columns} cols x {cfg.rows} rows = {per_page} per page")
-        print(f"  images:      {len(images)} -> {page_count} page(s)")
+        offset_note = f", offset {cfg.offset}" if cfg.offset else ""
+        print(f"  images:      {len(images)}{offset_note} -> {page_count} page(s)")
 
     pages: list[Image.Image] = []
     for page_index in range(page_count):
         canvas = Image.new("RGB", (page_w, page_h), cfg.background)
         start = page_index * per_page
-        chunk = images[start : start + per_page]
+        chunk = slots[start : start + per_page]
 
         for slot, path in enumerate(chunk):
+            if path is None:  # leading offset slot, left blank
+                continue
             col = slot % cfg.columns
             row = slot // cfg.columns
             slot_x = margin_l + col * (card_w + gap_x)

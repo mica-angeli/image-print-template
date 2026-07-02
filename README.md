@@ -66,6 +66,7 @@ pixels using `--dpi`.
 | `--card-height` | `card_height` | — (required) | Height of one grid slot |
 | `--columns` | `columns` | — (required) | Number of columns |
 | `--rows` | `rows` | — (required) | Number of rows |
+| `--offset` | `offset` | `0` | Leading slots to leave blank before the first image |
 | `--margin-top` | `margin_top` | `0` | Page top → first row |
 | `--margin-left` | `margin_left` | `0` | Page left → first column |
 | `--gap-x` | `gap_x` | `0` | Horizontal gap between slots |
@@ -108,6 +109,15 @@ shifted `0.02 in` up-and-left so it overflows the slot edges.
 
 Keep bleed at or below half the gap between cards (`bleed ≤ gap ÷ 2`) to avoid
 overlapping neighbours — the tool warns you if it doesn't.
+
+### Starting offset
+
+`--offset N` leaves the first `N` grid slots blank and starts placing images at slot
+`N + 1`. This is handy for reusing a partially-consumed sheet. For example, with
+`--offset 2` the first two slots are empty, the first image lands in the third slot, the
+second image in the fourth, and so on. The default is `0` (start at the first slot).
+The blank slots count toward the grid, so a large enough offset pushes images onto
+later pages.
 
 ## Test sheet mode
 

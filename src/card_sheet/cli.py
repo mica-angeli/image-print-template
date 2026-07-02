@@ -21,6 +21,7 @@ from .layout import build_pdf, build_test_sheet
 DEFAULTS: dict = {
     "units": "in",
     "dpi": 300,
+    "offset": 0,
     "margin_top": 0.0,
     "margin_left": 0.0,
     "gap_x": 0.0,
@@ -84,6 +85,8 @@ def build_parser() -> argparse.ArgumentParser:
                    help="number of columns in the grid")
     p.add_argument("--rows", type=int, default=argparse.SUPPRESS,
                    help="number of rows in the grid")
+    p.add_argument("--offset", type=int, default=argparse.SUPPRESS,
+                   help="number of leading slots to leave blank before the first image")
     p.add_argument("--margin-top", type=float, dest="margin_top", default=argparse.SUPPRESS,
                    help="distance from page top to the first row")
     p.add_argument("--margin-left", type=float, dest="margin_left", default=argparse.SUPPRESS,
